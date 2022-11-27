@@ -1,6 +1,6 @@
-from PIL import Image
 import os
 import random
+from PIL import Image
 
 # Generator to yield all coordinate pairs in a loaded Image
 def getpixel(img):
@@ -50,19 +50,22 @@ def steg(image, data_file, output_file, BITS_TO_SHIFT=2, BANDS_TO_USE=3):
     # Creat a bitmap and encrypt the data
     encrypt_bitarray = (int(random.choice((0,1))==input_bit) for input_bit in input_bitarray)
     
-    for i in range(((data_len*8) + DATA_SIZE) / BITS_TO_SHIFT / BANDS_TO_USE):
+    for i in range(1 + (((data_len*8) + DATA_SIZE) / BITS_TO_SHIFT / BANDS_TO_USE)):
         coord = pixels.next()
         pixel = list(img.getpixel(coord))
         if i == checkpoint:
             checkpoint = 0
         for i,byte in enumerate(pixel[:BANDS_TO_USE]):
-            for s in range(BITS_TO_SHIFT):
-                if checkpoint:
-                    bit = bin_datalen.next()
-                else:
-                    bit = encrypt_bitarray.next()
-                if ((byte >> s) & 1) != bit:
-                    pixel[i] ^= (1 << s)
+            try:
+                for s in range(BITS_TO_SHIFT):
+                    if checkpoint:
+                        bit = bin_datalen.next()
+                    else:
+                        bit = encrypt_bitarray.next()
+                    if ((byte >> s) & 1) != bit:
+                        pixel[i] ^= (1 << s)
+            except StopIteration:
+                break
         img.putpixel(coord,tuple(pixel))
       
     print("Saving file...")
@@ -108,7 +111,7 @@ def desteg(image, savefile, BITS_TO_SHIFT=2, BANDS_TO_USE=3):
     # Loop through the file and pull the stego'd bits out
     # This also reverses the encryption: bitmask == pixel_bit is True (1) or False (0)
     # This 1 or 0 is the bit from the stego'd files value
-    for _ in range(length / BITS_TO_SHIFT / BANDS_TO_USE):
+    for _ in range(1 + (length / BITS_TO_SHIFT / BANDS_TO_USE)):
         coord = pixels.next()
         pixel = list(img.getpixel(coord))
         for byte in pixel[:BANDS_TO_USE]:
