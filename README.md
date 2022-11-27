@@ -1,11 +1,13 @@
 # StegoPNG
 
 Python stegonography tool with builtin encryption/obfuscation of the data.
+This tool works in both Python2 and Python3. The only requirement is the `pillow` library.
+
 By default, places 6 bits of data into each pixel of a .png-type file.
 It does this by overwriting the 2 least-significant bits in each band (R,G,B).
 Only tested with .png files, but will probably work with .bmp files as well.
 
-Features built-in encryption, using Python's `random` library.
+Features built-in encryption, using Python's `random` library. This roughly means the data is encrypted using Mersenne twister.
 
 ## Usage
 
