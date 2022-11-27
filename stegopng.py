@@ -1,4 +1,5 @@
 import os
+import functools
 import random
 from PIL import Image
 
@@ -50,8 +51,8 @@ def steg(image, data_file, output_file, BITS_TO_SHIFT=2, BANDS_TO_USE=3):
     # Creat a bitmap and encrypt the data
     encrypt_bitarray = (int(random.choice((0,1))==input_bit) for input_bit in input_bitarray)
     
-    for i in range(1 + (((data_len*8) + DATA_SIZE) / BITS_TO_SHIFT / BANDS_TO_USE)):
-        coord = pixels.next()
+    for i in range(1 + int(((data_len*8) + DATA_SIZE) / BITS_TO_SHIFT / BANDS_TO_USE)):
+        coord = next(pixels)
         pixel = list(img.getpixel(coord))
         if i == checkpoint:
             checkpoint = 0
@@ -59,9 +60,9 @@ def steg(image, data_file, output_file, BITS_TO_SHIFT=2, BANDS_TO_USE=3):
             try:
                 for s in range(BITS_TO_SHIFT):
                     if checkpoint:
-                        bit = bin_datalen.next()
+                        bit = next(bin_datalen)
                     else:
-                        bit = encrypt_bitarray.next()
+                        bit = next(encrypt_bitarray)
                     if ((byte >> s) & 1) != bit:
                         pixel[i] ^= (1 << s)
             except StopIteration:
@@ -70,21 +71,23 @@ def steg(image, data_file, output_file, BITS_TO_SHIFT=2, BANDS_TO_USE=3):
       
     print("Saving file...")
     while os.path.isfile(output_file):
-        c = raw_input("{} exists!\nOverwrite? [y/n] ".format(output_file))
+        check = input if os.sys.version_info.major == 3 else raw_input
+        c = check("{} exists!\nOverwrite? [y/n] ".format(output_file))
         if c.lower() == "y":
             break
         else:
-            output_file = raw_input("Enter new file path:\n> ")
+            output_file = check("Enter new file path:\n> ")
     img.save(output_file)
     print("File saved at: {}".format(output_file))
 
 def desteg(image, savefile, BITS_TO_SHIFT=2, BANDS_TO_USE=3):
     while os.path.isfile(savefile):
-        c = raw_input("{} exists!\nOverwrite? [y/n] ".format(savefile))
+        check = input if os.sys.version_info.major == 3 else raw_input
+        c = check("{} exists!\nOverwrite? [y/n] ".format(savefile))
         if c.lower() == "y":
             break
         else:
-            savefile = raw_input("Enter new file path:\n> ")
+            savefile = check("Enter new file path:\n> ")
     DATA_SIZE = 30
     while ((DATA_SIZE % (BITS_TO_SHIFT*BANDS_TO_USE)) != 0):
         DATA_SIZE += 1
@@ -93,15 +96,15 @@ def desteg(image, savefile, BITS_TO_SHIFT=2, BANDS_TO_USE=3):
     pixels = getpixel(img)
     output = []
     # Get length of stego'd data
-    for _ in range(DATA_SIZE / BITS_TO_SHIFT / BANDS_TO_USE):
-        coord = pixels.next()
+    for _ in range(int(DATA_SIZE / BITS_TO_SHIFT / BANDS_TO_USE)):
+        coord = next(pixels)
         pixel = list(img.getpixel(coord))
         for byte in pixel[:BANDS_TO_USE]:
             for s in range(BITS_TO_SHIFT):
                 output.append((byte >> s) & 1)
     
     # Translate backwards binary list into a number
-    length = (reduce(lambda x,y: x << 1 | y, output[::-1]))*8
+    length = (functools.reduce(lambda x,y: x << 1 | y, output[::-1]))*8
     print("Length: ", length)
     output = []
     # Set the random seed for decrypting the data, and create the bitmask
@@ -111,21 +114,21 @@ def desteg(image, savefile, BITS_TO_SHIFT=2, BANDS_TO_USE=3):
     # Loop through the file and pull the stego'd bits out
     # This also reverses the encryption: bitmask == pixel_bit is True (1) or False (0)
     # This 1 or 0 is the bit from the stego'd files value
-    for _ in range(1 + (length / BITS_TO_SHIFT / BANDS_TO_USE)):
-        coord = pixels.next()
+    for _ in range(1 + int(length / BITS_TO_SHIFT / BANDS_TO_USE)):
+        coord = next(pixels)
         pixel = list(img.getpixel(coord))
         for byte in pixel[:BANDS_TO_USE]:
             try:
                 for s in range(BITS_TO_SHIFT):
-                    bit = encrypt_bitmask.next()
+                    bit = next(encrypt_bitmask)
                     output.append(int(((byte >> s) & 1) == bit))
             except StopIteration:
                 break
  
     # Turn the binary output into bytes in a bytearray
     data = bytearray()
-    for i in range(len(output)/8):
-        data.append(reduce(lambda x,y: x << 1 | y, output[i*8:i*8+8]))
+    for i in range(int(len(output)/8)):
+        data.append(functools.reduce(lambda x,y: x << 1 | y, output[i*8:i*8+8]))
     
     with open(savefile, "wb") as f:
         f.write(data)
