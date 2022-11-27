@@ -27,3 +27,7 @@ There are two OPTIONAL arguments at the end of each funtion:
     def desteg(image, savefile, BITS_TO_SHIFT=2, BANDS_TO_USE=3)
     
 These determine how many least-significant bits and how many bands (R,G,B) to write data to.
+
+## Action Shot:
+
+![explorer_2022-11-26_23-45-48](https://user-images.githubusercontent.com/21281361/204121177-20c47a7a-5e4e-45ac-b33f-f0a7203d90a0.gif)
