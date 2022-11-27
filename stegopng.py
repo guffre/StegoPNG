@@ -76,6 +76,12 @@ def steg(image, data_file, output_file, BITS_TO_SHIFT=2, BANDS_TO_USE=3):
     print("File saved at: {}".format(output_file))
 
 def desteg(image, savefile, BITS_TO_SHIFT=2, BANDS_TO_USE=3):
+    while os.path.isfile(savefile):
+        c = raw_input("{} exists!\nOverwrite? [y/n] ".format(savefile))
+        if c.lower() == "y":
+            break
+        else:
+            savefile = raw_input("Enter new file path:\n> ")
     DATA_SIZE = 30
     while ((DATA_SIZE % (BITS_TO_SHIFT*BANDS_TO_USE)) != 0):
         DATA_SIZE += 1
